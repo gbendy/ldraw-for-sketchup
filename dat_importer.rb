@@ -11,9 +11,6 @@ menu.add_item(cmd)
 
 module JF
     module LDraw
-        def self.init()
-            @ldrawdir = "C:/LDraw"
-        end
 
         def self.get_pn()
             init()
@@ -29,9 +26,14 @@ module JF
             return ret[0]
         end
 
+        def self.init
+            # @ldrawdir = 'C:/LDraw'
+            @ldrawdir = 'C:/Program Files (x86)/LDraw'
+        end
+
         def self.get_file
             init()
-            file = UI.openpanel("Model", "c:\\ldraw\\", "*.dat")
+            file = UI.openpanel("Model", @ldrawdir, "*.dat")
             return unless file
             go(File.basename(file))
         end
