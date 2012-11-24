@@ -11,6 +11,11 @@ module JF
     CMD_TRI     = 3
     CMD_QUAD    = 4
 
+    def self.init
+      # @ldrawdir = 'C:/LDraw'
+      @ldrawdir = 'C:/Program Files (x86)/LDraw'
+    end
+
     def self.import_part_by_number()
       init()
       @last_pn = "3001" unless @last_pn
@@ -23,11 +28,6 @@ module JF
       @part_no = ret[0]+".dat"
       go ret[0]+".dat"
       return ret[0]
-    end
-
-    def self.init
-      # @ldrawdir = 'C:/LDraw'
-      @ldrawdir = 'C:/Program Files (x86)/LDraw'
     end
 
     def self.get_file
