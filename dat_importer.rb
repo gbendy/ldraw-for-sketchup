@@ -3,7 +3,9 @@
 require 'sketchup'
 
 menu = UI.menu('File')#.add_submenu('LDraw Import')
-cmd  = UI::Command.new("Import LDraw by PN") { JF::LDraw.get_pn }
+cmd  = UI::Command.new("Import LDraw by PN") {
+  JF::LDraw.import_part_by_number
+}
 menu.add_item(cmd)
 #cmd = UI::Command.new("Import File") { JF::LDraw.get_file }
 #menu.add_item(cmd)
@@ -12,7 +14,7 @@ menu.add_item(cmd)
 module JF
     module LDraw
 
-        def self.get_pn()
+        def self.import_part_by_number()
             init()
             @last_pn = "3001" unless @last_pn
             ret = UI.inputbox(["Part No"], [@last_pn], "Import DAT")
