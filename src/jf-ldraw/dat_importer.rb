@@ -6,6 +6,11 @@ require 'sketchup'
 module JF
   module LDraw
 
+    CMD_COMMENT = 0
+    CMD_FILE    = 1
+    CMD_TRI     = 3
+    CMD_QUAD    = 4
+
     def self.import_part_by_number()
       init()
       @last_pn = "3001" unless @last_pn
@@ -78,11 +83,12 @@ module JF
         ary = line.split
         #next if ary[0] == "0" or ary.empty?
         cmd = ary.shift
+        cmd = cmd.to_i
         color = ary.shift
         case cmd
-        when "1" # File
+        when CMD_FILE # File
           name = (ary.pop).downcase
-          raise "Bad array" if ary.length != 12
+          raise "Bad array line #{i} #{File.basename(file)}" if ary.length != 12
           part_m = ary_to_trans(ary)
           next if name[/edge/i]
           part_def = add_def(name)
@@ -90,7 +96,7 @@ module JF
             read_file(rel_path_to(name), part_def.entities, matrix)
           end
           part = container.add_instance(part_def, part_m)
-        when "3" # Triangle
+        when CMD_TRI
           ary.map!{|e| e.to_f }
           pts = [ ary[0, 3], ary[3, 3], ary[6, 3] ]
           pts.map!{|e| Geom::Point3d.new(e)}
@@ -98,9 +104,9 @@ module JF
           begin
             face = container.add_face(pts)
           rescue => e
-            puts "Draw 3: add_face error:#{e}\n#{pts.inspect}"
+            puts "CMD_TRI: add_face error:#{e}\n#{pts.inspect}"
           end
-        when "4" # Quad
+        when CMD_QUAD
           ary.map!{|e| e.to_f }
           pts = [ ary[0, 3], ary[3, 3], ary[6, 3], ary[9, 3] ]
           pts.map!{|e| Geom::Point3d.new(e)}
@@ -116,7 +122,7 @@ module JF
           begin
             face = container.add_face(pts)
           rescue => e
-            puts "Draw 4: add_face error:#{e}\n#{pts.inspect}"
+            puts "CMD_QUAD: add_face error:#{e}\n#{pts.inspect}"
             container.add_face(pts[0], pts[1], pts[3])
             container.add_face(pts[1], pts[2], pts[3])
           end
