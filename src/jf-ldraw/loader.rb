@@ -3,10 +3,12 @@
 
 load "#{File.dirname(__FILE__)}/dat_importer.rb"
 
-menu = UI.menu('File')
+menu = UI.menu('Plugins').add_submenu('LDraw')
 
-cmd  = UI::Command.new("Import LDraw by PN") {
+menu.add_item('Import Part') {
   JF::LDraw.import_part_by_number
 }
 
-menu.add_item(cmd)
+menu.add_item('Import .ldr') {
+  JF::LDraw.ui_get_file
+}

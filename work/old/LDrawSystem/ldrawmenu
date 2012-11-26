@@ -1,0 +1,51 @@
+#
+# Sort of like an onLoad
+scriptname = File.basename(__FILE__)
+unless file_loaded?(scriptname)
+
+  menu = UI.menu.add_submenu("LDraw")
+
+  mymenu = true
+
+  menu.add_item("Export model") { LDraw.export_model }
+  menu.add_separator
+  menu.add_item("Import PN(s)") { LDraw.import_bynum }
+  menu.add_item("Import file") { LDraw.import }
+  menu.add_separator
+  menu.add_item("Rotate Part") { LDraw.rotate_part }
+  menu.add_item("Browse Model Dir") { LDraw.open_model_dir }
+  menu.add_separator
+  menu.add_item("Configure") { LDraw.config }
+  menu.add_item("About") { LDraw.about }
+
+  if mymenu
+    menu.add_separator
+    menu.add_item("Export component to .dat") { LDraw.com2dat }
+    menu.add_item("New Step") { LDraw.new_step }
+    menu.add_item("Zoom All Pages") { LDraw.zoom_all_pages }
+    menu.add_item("Stack Layers") { LDraw.layers_stack }
+    menu.add_item("Seq Layers") { LDraw.layers_curr_prev }
+    menu.add_item("Export All Images") { LDraw.write_all_pages }
+    menu.add_item("Goto Scene 1") { LDraw.gotoScene(0) }
+    menu.add_item("Create Layers") { LDraw.create_layers }
+    menu.add_item("Create Pages") { LDraw.create_pages }
+    menu.add_separator
+
+    # Debug sub menu
+    debug = menu.add_submenu("Debug") {}
+    debug.add_item("Show Bad Faces") { LDraw.bad_faces }
+    debug.add_item("Triangulate Face") { LDraw.triangulate_face }
+    debug.add_item("XRotate 90") {LDraw.rot_all(90)}
+    debug.add_item("XRotate -90") {LDraw.rot_all(-90)}
+    debug.add_item("Make STEPs") { LDraw.make_steps }
+    debug.add_item("Import parts list ") { LDraw.import_partslist }
+    debug.add_item("Load mpd") { LDraw.load_file }
+    debug.add_item("Show Transformation") { LDraw.show_transformation }
+    #debug.add_item("Copy Transformation") { LDraw.copy_translation }
+    #debug.add_item("Apply Transformation") { LDraw.apply_translation }
+  end
+
+  file_loaded(scriptname)
+
+
+end # end onLoad (do once)

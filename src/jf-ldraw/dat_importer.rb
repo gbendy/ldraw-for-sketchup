@@ -36,7 +36,7 @@ module JF
     # @return String<filepath> or nil
     def self.ui_get_file
       init()
-      file = UI.openpanel("Model", @ldrawdir, "*.dat")
+      file = UI.openpanel("Model", @ldrawdir, "*.ldr")
       return unless file
       go(File.basename(file))
     end
