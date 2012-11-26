@@ -15,6 +15,7 @@ module JF
     def self.init
       # @ldrawdir = 'C:/LDraw'
       @ldrawdir = 'C:/Program Files (x86)/LDraw'
+      @lost_parts = Set.new
     end
 
     def self.import_part_by_number()
@@ -38,19 +39,24 @@ module JF
       init()
       file = UI.openpanel("Model", @ldrawdir, "*.ldr")
       return unless file
-      go(File.basename(file))
+      go(file)
+      if @lost_parts.length > 0
+        UI.messagebox("Missong Partsn#{@lost_parts.to_a.join(', ')}")
+      end
     end
 
     # @param [String] pn - LDraw part number including .dat extention
     def self.go(pn)
       init()
-      file = rel_path_to(pn)
+      file = full_path_to(pn)
       if file.nil?
         UI.messagebox("No part: #{pn}")
         return
       end
+      #puts "file:#{file.inspect}"
       Sketchup.active_model.definitions.purge_unused
-      f = File.new(File.join(@ldrawdir, file))
+      #f = File.join(@ldrawdir, file)
+      f = File.new(file)
       first_line = f.readline
       f.close
       first_line = first_line.gsub(/^0/, '').strip
@@ -62,7 +68,7 @@ module JF
       Sketchup.active_model.start_operation "Import", true
       tr = Geom::Transformation.new
       read_file(file, entities, tr)
-      ins = Sketchup.active_model.entities.add_instance(cdef, tr)
+      #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
       Sketchup.active_model.commit_operation
 
     end
@@ -80,7 +86,7 @@ module JF
     end
 
     def self.read_file(file, container, matrix)
-      file = File.join(@ldrawdir, file)
+      #file = File.join(@ldrawdir, file)
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
         ary = line.split
@@ -97,7 +103,12 @@ module JF
           #next if name[/edge/i] # No need to add edges
           part_def = get_or_add_definition(name)
           if part_def.entities.length <= 1
-            read_file(rel_path_to(name), part_def.entities, matrix)
+            path = full_path_to(name)
+            if path.nil?
+              @lost_parts.insert(name)
+            else
+              read_file(path, part_def.entities, matrix)
+            end
           end
           part_m = ary_to_trans(ary)
           part = container.add_instance(part_def, part_m)
@@ -127,7 +138,7 @@ module JF
           begin
             face = container.add_face(pts)
           rescue => e
-            puts "CMD_QUAD: add_face error:#{e}\n#{pts.inspect}"
+            #puts "CMD_QUAD: add_face error:#{e}\n#{pts.inspect}"
             container.add_face(pts[0], pts[1], pts[3])
             container.add_face(pts[1], pts[2], pts[3])
           end
@@ -136,14 +147,16 @@ module JF
     end
 
     # Finds part.dat file relative to the @ldrawdir folder.
-    def self.rel_path_to(name)
-      name += ".dat" unless(name.split('.')[1] == "dat")
-      if (File.exist?( path = File.join(@ldrawdir, "parts", name)))
-        return "parts/#{name}"
+    def self.full_path_to(name)
+      #name += ".dat" unless(name.split('.')[1] == "dat")
+      if File.exist?( name )
+        return name
+      elsif (File.exist?( path = File.join(@ldrawdir, "parts", name)))
+        return path
       elsif (File.exist?(path = File.join(@ldrawdir, "p", name)))
-        return "p/#{name}"
+        return path
       elsif (File.exist?(path = File.join(@ldrawdir, "parts/s", name)))
-        return "parts/s/#{name}"
+        return path
       else
         return nil
       end
