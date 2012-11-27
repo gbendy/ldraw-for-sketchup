@@ -1,0 +1,57 @@
+LDraw.about
+LDraw.add_materials
+LDraw.apply_translation
+LDraw.array_to_transformation(ary)
+LDraw.bad_faces
+LDraw.com2dat
+LDraw.config
+LDraw.copy_translation
+LDraw.corner_vertices(face)
+LDraw.create_layers
+LDraw.create_pages
+LDraw.draw2(ary, cdef)
+LDraw.draw3(ary, cdef, color)
+LDraw.draw4(ary, cdef, color)
+LDraw.draw5(ary, cdef)
+LDraw.ex_im_test
+LDraw.export(entities)
+LDraw.export_model
+LDraw.face2line(face)
+LDraw.file2cname(file)
+LDraw.get_path(name)
+LDraw.getCurrScene()
+LDraw.gotoScene(o=0)
+LDraw.import(file = nil)
+LDraw.import_bynum(num = nil)
+LDraw.import_partslist(file = nil)
+LDraw.import_test
+LDraw.importlast
+LDraw.init
+LDraw.inlines2components(lines)
+LDraw.layers_curr_prev # ladder
+LDraw.layers_stack # additive
+LDraw.load_file
+LDraw.make_part
+LDraw.make_steps
+LDraw.mod_trans(tr)
+LDraw.new_from_template
+LDraw.new_step
+LDraw.open_model_dir
+LDraw.parse_inlines(file)
+LDraw.process_file(file, cdef, color)
+LDraw.read_colors
+LDraw.rot_all(angle)
+LDraw.rotate_part
+LDraw.save(title = "")
+LDraw.save_as_template
+LDraw.set_color(ent, code)
+LDraw.show_transformation
+LDraw.split_mpd(file)
+LDraw.start_positioner
+LDraw.swap_needed(ary)
+LDraw.swap_points(ary, i, j)
+LDraw.triangulate_face(*faces)
+LDraw.validity_check
+LDraw.write_all_pages
+LDraw.write_batch(file)
+LDraw.zoom_all_pages
