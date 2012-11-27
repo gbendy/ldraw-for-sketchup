@@ -53,9 +53,7 @@ module JF
         UI.messagebox("No part: #{pn}")
         return
       end
-      #puts "file:#{file.inspect}"
       Sketchup.active_model.definitions.purge_unused
-      #f = File.join(@ldrawdir, file)
       f = File.new(file)
       first_line = f.readline
       f.close
@@ -71,7 +69,7 @@ module JF
       #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
       Sketchup.active_model.commit_operation
 
-    end
+    end # import
 
 
     def self.get_or_add_definition(name, desc = "")
@@ -86,21 +84,21 @@ module JF
     end
 
     def self.read_file(file, container, matrix)
-      #file = File.join(@ldrawdir, file)
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
         ary = line.split
-        #next if ary[0] == "0" or ary.empty?
         cmd = ary.shift
         cmd = cmd.to_i
         color = ary.shift
+
         case cmd
+
         when CMD_LINE
           # Do nothing
-        when CMD_FILE # File
+
+        when CMD_FILE
           name = (ary.pop).downcase
           raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
-          #next if name[/edge/i] # No need to add edges
           part_def = get_or_add_definition(name)
           if part_def.entities.length <= 1
             path = full_path_to(name)
@@ -112,6 +110,7 @@ module JF
           end
           part_m = ary_to_trans(ary)
           part = container.add_instance(part_def, part_m)
+
         when CMD_TRI
           ary.map!{|e| e.to_f }
           pts = [ ary[0, 3], ary[3, 3], ary[6, 3] ]
@@ -122,6 +121,7 @@ module JF
           rescue => e
             puts "CMD_TRI: add_face error:#{e}\n#{pts.inspect}"
           end
+
         when CMD_QUAD
           ary.map!{|e| e.to_f }
           pts = [ ary[0..2], ary[3..5], ary[6..8], ary[9..11] ]
@@ -146,9 +146,7 @@ module JF
       end
     end
 
-    # Finds part.dat file relative to the @ldrawdir folder.
     def self.full_path_to(name)
-      #name += ".dat" unless(name.split('.')[1] == "dat")
       if File.exist?( name )
         return name
       elsif (File.exist?( path = File.join(@ldrawdir, "parts", name)))
