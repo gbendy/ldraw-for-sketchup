@@ -17,5 +17,3 @@ Currently requires LDraw to be installed to `C:\Program Files (x86)\LDraw`
 
 ----
 
-
-The `src/` folder will contain the stable plugin files.
