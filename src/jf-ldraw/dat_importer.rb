@@ -28,7 +28,7 @@ module JF
       end
       @last_pn = ret[0]
       @part_no = ret[0]+".dat"
-      go ret[0]+".dat"
+      import ret[0]+".dat"
       return ret[0]
     end
 
@@ -39,14 +39,14 @@ module JF
       init()
       file = UI.openpanel("Model", @ldrawdir, "*.ldr")
       return unless file
-      go(file)
+      import(file)
       if @lost_parts.length > 0
         UI.messagebox("Missong Partsn#{@lost_parts.to_a.join(', ')}")
       end
     end
 
     # @param [String] pn - LDraw part number including .dat extention
-    def self.go(pn)
+    def self.import(pn)
       init()
       file = full_path_to(pn)
       if file.nil?
