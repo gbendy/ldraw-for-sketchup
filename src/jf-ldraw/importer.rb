@@ -15,6 +15,7 @@ module JF
     def self.init
       # @ldrawdir = 'C:/LDraw'
       @ldrawdir = 'C:/Program Files (x86)/LDraw'
+      @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @lost_parts = Set.new
     end
 
@@ -37,7 +38,8 @@ module JF
     # @return String<filepath> or nil
     def self.ui_get_file
       init()
-      file = UI.openpanel("Model", @ldrawdir, "*.ldr")
+      #file = UI.openpanel("Model", @ldrawdir, "*.ldr")
+      file = UI.openpanel("Model", @modeldir, "*.ldr")
       return unless file
       import(file)
       if @lost_parts.length > 0

@@ -4,6 +4,13 @@ LDraw-for-SketchUp
 LDraw Tools for SketchUp
 
 ----
+28 Nov 2012
+
+ * Added a basic .ldr exporter.
+  * Exports entire model. 
+  * Exports only Component Instances. 
+  * Instance Definition names should match LDraw part number without the
+   .dat extension.
 
 26 Nov 2012 - Updates
 
