@@ -4,15 +4,16 @@ module JF
     def self.ui_export
       model_name = Sketchup.active_model.title + '.ldr'
       @file = UI.savepanel('Export', "", model_name)
-      #name = get_export_filename
-      File.open(@file, 'w') do |f|
-        export(f)
+      if @file
+        File.open(@file, 'w') do |f|
+          export(f)
+        end
       end
     end
 
     def self.export(file_object)
       model = Sketchup.active_model
-      model.entities.each do |ins|
+      model.entities.grep(Sketchup::ComponentInstance).each do |ins|
         a = ins.transformation.to_a
         file_object.write('1 16 ')
         file_object.write("#{a[12]} #{a[13]} #{a[14]} ")
