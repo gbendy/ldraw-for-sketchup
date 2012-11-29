@@ -16,6 +16,7 @@ module JF
       # @ldrawdir = 'C:/LDraw'
       @ldrawdir = 'C:/Program Files (x86)/LDraw'
       @modeldir = 'C:/Users/Jim/Documents/Downloads'
+      @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
     end
 
@@ -79,6 +80,9 @@ module JF
       raise "#{__LINE__} - bad name." if name.empty? or name.nil?
       if((cdef = Sketchup.active_model.definitions[name]))
         return cdef
+      elsif File.exists?(f = File.join(@partsdir, name+'.skp'))
+        cdef = Sketchup.active_model.definitions.load(f)
+        return cdef
       else
         cdef = Sketchup.active_model.definitions.add(name) 
         return cdef
@@ -95,12 +99,14 @@ module JF
 
         case cmd
 
+        when CMD_COMMENT
+
         when CMD_LINE
           # Do nothing
 
         when CMD_FILE
           name = (ary.pop).downcase
-          raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
+          #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
           part_def = get_or_add_definition(name)
           if part_def.entities.length <= 1
             path = full_path_to(name)
