@@ -1,6 +1,7 @@
 module JF
   module LDraw
 
+    TR = Geom::Transformation.rotation(ORIGIN, X_AXIS, 90.degrees)
     def self.ui_export
       model_name = Sketchup.active_model.title + '.ldr'
       @file = UI.savepanel('Export', "", model_name)
@@ -13,8 +14,8 @@ module JF
 
     def self.export(file_object)
       model = Sketchup.active_model
-      model.entities.grep(Sketchup::ComponentInstance).each do |ins|
-        a = ins.transformation.to_a
+      model.active_entities.grep(Sketchup::ComponentInstance).each do |ins|
+        a = (TR * ins.transformation).to_a
         file_object.write('1 16 ')
         file_object.write("#{a[12]} #{a[13]} #{a[14]} ")
         file_object.write("#{a[0]} #{a[4]} #{a[8]} ")

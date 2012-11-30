@@ -42,10 +42,12 @@ module JF
       #file = UI.openpanel("Model", @ldrawdir, "*.ldr")
       file = UI.openpanel("Model", @modeldir, "*.ldr")
       return unless file
-      import(file)
+      cdef = import(file)
       if @lost_parts.length > 0
-        UI.messagebox("Missong Partsn#{@lost_parts.to_a.join(', ')}")
+        UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
       end
+      #tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      #Sketchup.active_model.entities.add_instance(cdef, tr)
     end
 
     # @param [String] pn - LDraw part number including .dat extention
@@ -57,13 +59,13 @@ module JF
         return
       end
       Sketchup.active_model.definitions.purge_unused
-      f = File.new(file)
-      first_line = f.readline
-      f.close
-      first_line = first_line.gsub(/^0/, '').strip
+      #f = File.new(file)
+      #first_line = f.readline
+      #f.close
+      #first_line = first_line.gsub(/^0/, '').strip
       name = File.basename(file, '.dat')
       cdef = Sketchup.active_model.definitions.add(name)
-      cdef.description = first_line
+      #cdef.description = first_line
       entities = cdef.entities
 
       Sketchup.active_model.start_operation "Import", true
@@ -71,7 +73,7 @@ module JF
       read_file(file, entities, tr)
       #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
       Sketchup.active_model.commit_operation
-
+      return cdef
     end # import
 
 
