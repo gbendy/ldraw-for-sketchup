@@ -5,6 +5,16 @@ module JF
     p LD_CONFIG
     #COLOR = {}
 
+    def self.import_materials
+      parse_colors
+      Sketchup.active_model.start_operation('Import Materials', true)
+      COLOR.keys.each do |code|
+        get_or_add_material(code)
+      end
+      Sketchup.active_model.commit_operation
+    end
+
+
     def self.parse_colors
       IO.foreach(LD_CONFIG) do |line|
         line.strip!

@@ -24,6 +24,10 @@ module JF
       JF::LDraw.ui_export
     }
 
+    menu.add_item("Import Materials") {
+      JF::LDraw.import_materials
+    }
+
     menu.add_item('About') {
       UI.openURL('https://github.com/jimfoltz/LDraw-for-SketchUp')
     }
