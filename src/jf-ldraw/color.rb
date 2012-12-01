@@ -44,6 +44,9 @@ module JF
         mat = Sketchup.active_model.materials.add(code)
         mat.color = COLOR[code]
         #mat.alpha = 1.0 - COLOR[code].alpha / 255.0
+        if COLOR[code].nil?
+          raise "code nil"
+        end
         mat.alpha = COLOR[code].alpha / 255.0
         return mat
       end

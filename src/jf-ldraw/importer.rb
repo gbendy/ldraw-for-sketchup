@@ -15,10 +15,11 @@ module JF
     def self.init
       # @ldrawdir = 'C:/LDraw'
       @ldrawdir = 'C:/Program Files (x86)/LDraw'
-      @modeldir = 'C:/Users/Jim/Documents/Downloads'
+      @modeldir = 'C:/Users/Jim/Documents/Downloads'.tr('/', '\\\\')
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
       parse_colors()
+      @errors = []
     end
 
     def self.import_part_by_number()
@@ -45,7 +46,7 @@ module JF
     def self.ui_get_file
       init()
       #file = UI.openpanel("Model", @ldrawdir, "*.ldr")
-      file = UI.openpanel("Model", @modeldir, "*.ldr")
+      file = UI.openpanel("Model", @modeldir, '*')
       return unless file
       cdef = import_definitions(file)
       if @lost_parts.length > 0
@@ -58,6 +59,9 @@ module JF
       pass2(file)
       Sketchup.active_model.active_view.zoom_extents
       make_steps
+      if @errors.length > 1
+        UI.messagebox(@errors.join("\n"))
+      end
     end
 
     # @param [String] pn - LDraw part number including .dat extention
@@ -180,7 +184,7 @@ module JF
           begin
             face = container.add_face(pts)
           rescue => e
-            puts "CMD_TRI: add_face error:#{e}\n#{pts.inspect}"
+            @errors << "CMD_TRI: add_face error:#{e}\n#{file}:#{pts.inspect}"
           end
 
         when CMD_QUAD
@@ -200,10 +204,15 @@ module JF
           begin
             face = container.add_face(pts)
           rescue => e
-            #puts "CMD_QUAD: add_face error:#{e}\n#{pts.inspect}"
-            container.add_face(pts[0], pts[1], pts[3])
-            container.add_face(pts[1], pts[2], pts[3])
+            @errors << "CMD_QUAD: add_face error:#{e}\n#{file}:#{pts.inspect}"
           end
+          #begin
+          #  container.add_face(pts[0], pts[1], pts[3])
+          #  container.add_face(pts[1], pts[2], pts[3])
+          #rescue => e
+          #  p e
+          #  p pts
+          #end
         end
       end
     end
