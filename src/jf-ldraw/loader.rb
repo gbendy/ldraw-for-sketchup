@@ -40,5 +40,13 @@ module JF
       Sketchup.open_file(file)
     }
 
+    UI.add_context_menu_handler do |menu|
+      menu.add_item("Save to LDraw Lib") do 
+        ins = Sketchup.active_model.selection[0]
+        cdef = ins.definition
+        cdef.save_as(SKETCHUP_PARTS + '/' + cdef.name + '.skp')
+      end
+    end
+
   end
 end
