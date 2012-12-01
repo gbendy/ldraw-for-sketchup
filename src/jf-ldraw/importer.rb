@@ -11,7 +11,7 @@ module JF
     CMD_LINE    = 2
     CMD_TRI     = 3
     CMD_QUAD    = 4
-    SMOOTH = 8
+    SMOOTH = 4
 
     def self.init
       # @ldrawdir = 'C:/LDraw'
