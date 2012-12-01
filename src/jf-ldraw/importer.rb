@@ -35,6 +35,7 @@ module JF
       @last_pn = ret[0]
       @part_no = ret[0]+".dat"
       cdef = import ret[0]+".dat"
+      return if cdef.nil?
       ins = Sketchup.active_model.entities.add_instance(
         cdef,
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
