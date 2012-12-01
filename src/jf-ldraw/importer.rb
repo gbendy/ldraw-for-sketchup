@@ -18,6 +18,7 @@ module JF
       @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
+      parse_colors()
     end
 
     def self.import_part_by_number()
@@ -30,7 +31,11 @@ module JF
       end
       @last_pn = ret[0]
       @part_no = ret[0]+".dat"
-      import ret[0]+".dat"
+      cdef = import ret[0]+".dat"
+      Sketchup.active_model.entities.add_instance(
+        cdef,
+        Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      )
       return ret[0]
     end
 
@@ -46,8 +51,10 @@ module JF
       if @lost_parts.length > 0
         UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
       end
-      #tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
-      #Sketchup.active_model.entities.add_instance(cdef, tr)
+      Sketchup.active_model.entities.add_instance(
+        cdef,
+        Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      )
     end
 
     # @param [String] pn - LDraw part number including .dat extention
@@ -59,20 +66,17 @@ module JF
         return
       end
       Sketchup.active_model.definitions.purge_unused
-      #f = File.new(file)
-      #first_line = f.readline
-      #f.close
-      #first_line = first_line.gsub(/^0/, '').strip
       name = File.basename(file, '.dat')
-      cdef = Sketchup.active_model.definitions.add(name)
-      #cdef.description = first_line
-      entities = cdef.entities
+      cdef = get_or_add_definition(name)
 
-      Sketchup.active_model.start_operation "Import", true
-      tr = Geom::Transformation.new
-      read_file(file, entities, tr)
-      #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
-      Sketchup.active_model.commit_operation
+      if cdef.entities.length < 1
+        Sketchup.active_model.start_operation "Import", true
+        tr = Geom::Transformation.new
+        entities = cdef.entities
+        read_file(file, entities, tr)
+        #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
+        Sketchup.active_model.commit_operation
+      end
       return cdef
     end # import
 
@@ -91,22 +95,27 @@ module JF
       end
     end
 
-    def self.read_file(file, container, matrix)
+    def self.read_file(file, container, matrix, color='16')
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
+        line.strip!
         ary = line.split
         cmd = ary.shift
         cmd = cmd.to_i
-        color = ary.shift
 
         case cmd
 
         when CMD_COMMENT
 
         when CMD_LINE
+          this_color = ary.shift.strip
           # Do nothing
 
         when CMD_FILE
+          this_color = ary.shift.strip
+          #puts "this_color:#{this_color.inspect}"
+          this_color = color if this_color == '16'
+          #puts "this_color:#{COLOR[this_color].inspect}"
           name = (ary.pop).downcase
           #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
           part_def = get_or_add_definition(name)
@@ -115,13 +124,21 @@ module JF
             if path.nil?
               @lost_parts.insert(name)
             else
-              read_file(path, part_def.entities, matrix)
+              read_file(path, part_def.entities, matrix, this_color)
             end
           end
           part_m = ary_to_trans(ary)
           part = container.add_instance(part_def, part_m)
+          #mat = Sketchup.active_model.materials.add(this_color)
+          #mat.color = COLOR[this_color]
+          #if this_color == '16'
+            #part.material = get_or_add_material(color)
+          #else
+            part.material = get_or_add_material(this_color)
+          #end
 
         when CMD_TRI
+          this_color = ary.shift.strip
           ary.map!{|e| e.to_f }
           pts = [ ary[0, 3], ary[3, 3], ary[6, 3] ]
           pts.map!{|e| Geom::Point3d.new(e)}
@@ -133,6 +150,7 @@ module JF
           end
 
         when CMD_QUAD
+          this_color = ary.shift.strip
           ary.map!{|e| e.to_f }
           pts = [ ary[0..2], ary[3..5], ary[6..8], ary[9..11] ]
           #pts.map!{|e| Geom::Point3d.new(e)}
