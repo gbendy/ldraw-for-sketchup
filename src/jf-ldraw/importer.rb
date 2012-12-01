@@ -55,6 +55,7 @@ module JF
         cdef,
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
+      p COLOR['16']
     end
 
     # @param [String] pn - LDraw part number including .dat extention
@@ -114,7 +115,7 @@ module JF
         when CMD_FILE
           this_color = ary.shift.strip
           #puts "this_color:#{this_color.inspect}"
-          this_color = color if this_color == '16'
+          #this_color = color if this_color == '16'
           #puts "this_color:#{COLOR[this_color].inspect}"
           name = (ary.pop).downcase
           #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12

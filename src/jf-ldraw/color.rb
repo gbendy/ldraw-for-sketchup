@@ -12,6 +12,7 @@ module JF
         value = /VALUE\s+\#([a-fA-F0-9]+)/.match(line)
         alpha = /ALPHA\s+(\d+)/.match(line)
           if code
+            code = code[1]
             #puts "code:#{code[1].inspect}"
             if value
               rgb = value[1].scan(/../).map{|e| e.to_i(16)}
@@ -20,12 +21,15 @@ module JF
               else
                 rgb << 255
               end
-              color = COLOR[code[1]] = Sketchup::Color.new(rgb)
+              color = COLOR[code] = Sketchup::Color.new(rgb)
             end
           end
       end
+      COLOR['16'] = nil
     end
+
     def self.get_or_add_material(code)
+      return nil if code == '16'
       if ( mat = Sketchup.active_model.materials[code] )
         return mat
       else
