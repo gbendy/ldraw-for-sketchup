@@ -16,8 +16,9 @@ module JF
       model = Sketchup.active_model
       model.active_entities.grep(Sketchup::ComponentInstance).each do |ins|
         a = (TR * ins.transformation).to_a
-        file_object.write('1 16 ')
-        file_object.write("#{a[12]} #{a[13]} #{a[14]} ")
+        file_object.write('1 ')
+        file_object.write(ins.material.name)
+        file_object.write(" #{a[12]} #{a[13]} #{a[14]} ")
         file_object.write("#{a[0]} #{a[4]} #{a[8]} ")
         file_object.write("#{a[1]} #{a[5]} #{a[9]} ")
         file_object.write("#{a[2]} #{a[6]} #{a[10]} ")
