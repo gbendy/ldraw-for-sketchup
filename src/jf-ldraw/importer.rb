@@ -138,7 +138,7 @@ module JF
           pts.map!{|e| e.transform!(matrix)}
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
-          container.add_faces_from_mesh(mesh, SMOOTH)
+          container.add_faces_from_mesh(mesh, SMOOTH, get_or_add_material(this_color))
 
         when CMD_QUAD
           this_color = ary.shift.strip
@@ -154,7 +154,7 @@ module JF
           end
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
-          container.add_faces_from_mesh(mesh, SMOOTH)
+          container.add_faces_from_mesh(mesh, SMOOTH, get_or_add_material(this_color))
         end
       end
     end
