@@ -13,8 +13,10 @@ module JF
 
     menu = UI.menu('Plugins').add_submenu('LDraw')
 
+    #menu.add_item('Import Definitions') { JF::LDraw.import_definitions }
     menu.add_item('Import Part No') { JF::LDraw.import_part_by_number }
     menu.add_item('Import Model (.ldr)') { JF::LDraw.ui_get_file }
+    menu.add_item('Make Step Scenes') { JF::LDraw.make_steps }
     menu.add_separator
     menu.add_item("Export .ldr") { JF::LDraw.ui_export }
     menu.add_separator

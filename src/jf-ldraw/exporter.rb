@@ -1,23 +1,33 @@
 module JF
   module LDraw
 
-    TR = Geom::Transformation.rotation(ORIGIN, X_AXIS, 90.degrees)
     def self.ui_export
-      model_name = Sketchup.active_model.title + '.ldr'
-      @file = UI.savepanel('Export', "", model_name)
-      if @file
-        File.open(@file, 'w') do |f|
-          export(f)
+      model = Sketchup.active_model
+      instances = model.entities.grep(Sketchup::ComponentInstance)
+      if instances.length < 1
+        UI.messagebox('No ComponentInstances to Export.')
+        return
+      end
+      model_title = model.title
+      model_title = 'Untitled' if model_title.empty?
+      model_name = model_title + '.ldr'
+      file = UI.savepanel('Export', "", model_name)
+      if file
+        if File.extname(file).empty?
+          file << '.ldr'
         end
+        File.open(file, 'w') { |f| export_instances(f) }
       end
     end
 
-    def self.export(file_object)
+    # Export top-level ComponentInstances
+    def self.export_instances(file_object)
       model = Sketchup.active_model
       model.active_entities.grep(Sketchup::ComponentInstance).each do |ins|
         a = (TR * ins.transformation).to_a
-        file_object.write('1 16 ')
-        file_object.write("#{a[12]} #{a[13]} #{a[14]} ")
+        file_object.write('1 ')
+        file_object.write(ins.material.name)
+        file_object.write(" #{a[12]} #{a[13]} #{a[14]} ")
         file_object.write("#{a[0]} #{a[4]} #{a[8]} ")
         file_object.write("#{a[1]} #{a[5]} #{a[9]} ")
         file_object.write("#{a[2]} #{a[6]} #{a[10]} ")

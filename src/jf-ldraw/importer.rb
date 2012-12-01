@@ -47,7 +47,7 @@ module JF
       #file = UI.openpanel("Model", @ldrawdir, "*.ldr")
       file = UI.openpanel("Model", @modeldir, "*.ldr")
       return unless file
-      cdef = import(file)
+      cdef = import_definitions(file)
       if @lost_parts.length > 0
         UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
       end
@@ -56,10 +56,13 @@ module JF
         #Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       #)
       pass2(file)
+      Sketchup.active_model.active_view.zoom_extents
+      make_steps
     end
 
     # @param [String] pn - LDraw part number including .dat extention
-    def self.import(pn)
+    # Imports parts into Definitions, not into mode
+    def self.import_definitions(pn)
       init()
       file = full_path_to(pn)
       if file.nil?
@@ -74,12 +77,12 @@ module JF
         Sketchup.active_model.start_operation "Import", true
         tr = Geom::Transformation.new
         entities = cdef.entities
-        read_file(file, entities, tr)
+        parse_file(file, entities, tr)
         #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
         Sketchup.active_model.commit_operation
       end
       return cdef
-    end # import
+    end # import_definitions
 
 
     def self.get_or_add_definition(name, desc = "")
@@ -99,12 +102,13 @@ module JF
     def self.pass2(file)
       #p file
       tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
-      layer = Sketchup.active_model.layers.add 'STEP 00'
+      layer = Sketchup.active_model.layers.add 'STEP 01'
       IO.readlines(file).each do |line|
         line.strip!
         ary = line.split
         cmd = ary.shift.to_i
         if cmd == 0 and ary[0] == 'STEP'
+          #Sketchup.active_model.pages.add
           layer = Sketchup.active_model.layers.add(Sketchup.active_model.layers[-1].name.next)
         end
 
@@ -125,7 +129,7 @@ module JF
       end
     end
 
-    def self.read_file(file, container, matrix, color='16')
+    def self.parse_file(file, container, matrix, color='16')
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
         line.strip!
@@ -154,7 +158,7 @@ module JF
             if path.nil?
               @lost_parts.insert(name)
             else
-              read_file(path, part_def.entities, matrix)
+              parse_file(path, part_def.entities, matrix)
             end
           end
           part_m = ary_to_trans(ary)
@@ -246,6 +250,21 @@ module JF
 
     def self.swap_points(ary, i, j)
       ary[j], ary[i] = ary[i], ary[j]
+    end
+
+    def self.make_steps
+      model = Sketchup.active_model
+      layers = model.layers
+      pages = model.pages
+      layers.purge_unused
+      layers = layers.to_a
+      layers.shift #layer0
+      pages.add
+      layers.each { |layer| layer.visible =  false }
+      layers.each do |layer|
+        layer.visible = true
+        pages.add(layer.name, 32)
+      end
     end
 
   end # LDraw
