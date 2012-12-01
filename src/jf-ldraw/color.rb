@@ -1,9 +1,7 @@
 module JF
   module LDraw
     #LD_CONFIG = File.join(LDRAW_DIR, 'LDConfig.ldr')
-    LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
-    p LD_CONFIG
-    #COLOR = {}
+    #LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
 
     def self.import_materials
       parse_colors

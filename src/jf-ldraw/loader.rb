@@ -2,10 +2,11 @@
 #
 module JF
   module LDraw
-    LDRAW_DIR = 'C:/LDraw'
-    SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
-    COLOR = {}
+    #LDRAW_DIR = 'C:/LDraw'
+    #SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
+    #COLOR = {}
 
+    load "#{File.dirname(__FILE__)}/config.rb"
     load "#{File.dirname(__FILE__)}/importer.rb"
     load "#{File.dirname(__FILE__)}/exporter.rb"
     load "#{File.dirname(__FILE__)}/color.rb"
@@ -16,7 +17,7 @@ module JF
       JF::LDraw.import_part_by_number
     }
 
-    menu.add_item('Import .ldr') {
+    menu.add_item('Import Model (.ldr)') {
       JF::LDraw.ui_get_file
     }
 
@@ -29,6 +30,8 @@ module JF
     menu.add_item("Import Materials") {
       JF::LDraw.import_materials
     }
+
+    menu.add_separator
 
     menu.add_item('About') {
       UI.openURL('https://github.com/jimfoltz/LDraw-for-SketchUp')

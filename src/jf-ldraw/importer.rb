@@ -6,12 +6,13 @@ require 'sketchup'
 module JF
   module LDraw
 
-    CMD_COMMENT = 0
-    CMD_FILE    = 1
-    CMD_LINE    = 2
-    CMD_TRI     = 3
-    CMD_QUAD    = 4
-    SMOOTH = 4
+    #CMD_COMMENT = 0
+    #CMD_FILE    = 1
+    #CMD_LINE    = 2
+    #CMD_TRI     = 3
+    #CMD_QUAD    = 4
+
+    #SMOOTH      = 0
 
     def self.init
       # @ldrawdir = 'C:/LDraw'
@@ -33,10 +34,11 @@ module JF
       @last_pn = ret[0]
       @part_no = ret[0]+".dat"
       cdef = import ret[0]+".dat"
-      Sketchup.active_model.entities.add_instance(
+      ins = Sketchup.active_model.entities.add_instance(
         cdef,
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
+      Sketchup.active_model.active_view.zoom(ins)
       return ret[0]
     end
 
@@ -52,11 +54,11 @@ module JF
       if @lost_parts.length > 0
         UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
       end
-      Sketchup.active_model.entities.add_instance(
+      ins = Sketchup.active_model.entities.add_instance(
         cdef,
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
-      p COLOR['16']
+      Sketchup.active_model.active_view.zoom(ins)
     end
 
     # @param [String] pn - LDraw part number including .dat extention
