@@ -13,26 +13,13 @@ module JF
 
     menu = UI.menu('Plugins').add_submenu('LDraw')
 
-    menu.add_item('Import Part No') {
-      JF::LDraw.import_part_by_number
-    }
-
-    menu.add_item('Import Model (.ldr)') {
-      JF::LDraw.ui_get_file
-    }
-
+    menu.add_item('Import Part No') { JF::LDraw.import_part_by_number }
+    menu.add_item('Import Model (.ldr)') { JF::LDraw.ui_get_file }
     menu.add_separator
-
-    menu.add_item("Export .ldr") {
-      JF::LDraw.ui_export
-    }
-
-    menu.add_item("Import Materials") {
-      JF::LDraw.import_materials
-    }
-
+    menu.add_item("Export .ldr") { JF::LDraw.ui_export }
     menu.add_separator
-
+    menu.add_item("Import Materials") { JF::LDraw.import_materials }
+    menu.add_separator
     menu.add_item('About') {
       UI.openURL('https://github.com/jimfoltz/LDraw-for-SketchUp')
     }

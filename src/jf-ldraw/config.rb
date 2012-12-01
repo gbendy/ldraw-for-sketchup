@@ -12,7 +12,10 @@ module JF
     CMD_QUAD    = 4
 
     SMOOTH      = 0
+    TR = Geom::Transformation.rotation(ORIGIN, X_AXIS, 90.degrees)
+
     OPTS = {}
     OPTS[:ldraw_dir] = 'C:/Program Files (x86)/LDraw'
+    OPTS[:autosave_imported_parts] = false
   end
 end
