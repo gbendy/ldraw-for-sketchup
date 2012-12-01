@@ -6,6 +6,7 @@ require 'sketchup'
 module JF
   module LDraw
 
+    # See config.rb
     #CMD_COMMENT = 0
     #CMD_FILE    = 1
     #CMD_LINE    = 2
@@ -16,7 +17,7 @@ module JF
 
     def self.init
       # @ldrawdir = 'C:/LDraw'
-      @ldrawdir = 'C:/LDraw'
+      #@ldrawdir = 'C:/LDraw'
       @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
@@ -123,8 +124,12 @@ module JF
           if part_def.entities.length <= 1
             path = full_path_to(name)
             if path.nil?
-              @lost_parts.insert(name)
-            else
+              path = unofficial(name)
+              if path.nil?
+                @lost_parts.insert(name)
+              end
+            end
+            if !path.nil?
               read_file(path, part_def.entities, matrix, this_color)
             end
           end
@@ -164,11 +169,25 @@ module JF
     def self.full_path_to(name)
       if File.exist?( name )
         return name
-      elsif (File.exist?( path = File.join(@ldrawdir, 'parts', name)))
+      elsif (File.exist?( path = File.join(@opts[:ldraw_dir], 'parts', name)))
         return path
-      elsif (File.exist?(path = File.join(@ldrawdir, 'p', name)))
+      elsif (File.exist?(path = File.join(@opts[:ldraw_dir], 'p', name)))
         return path
-      elsif (File.exist?(path = File.join(@ldrawdir, 'parts/s', name)))
+      elsif (File.exist?(path = File.join(@opts[:ldraw_dir], 'parts/s', name)))
+        return path
+      else
+        return nil
+      end
+    end
+
+    def self.unofficial(name)
+      if File.exist?( name )
+        return name
+      elsif (File.exist?( path = File.join(@opts[:unofficial_parts_dir], 'parts', name)))
+        return path
+      elsif (File.exist?(path = File.join(@opts[:unofficial_parts_dir], 'p', name)))
+        return path
+      elsif (File.exist?(path = File.join(@opts[:unofficial_parts_dir], 'parts/s', name)))
         return path
       else
         return nil

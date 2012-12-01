@@ -3,9 +3,9 @@ module JF
 
     def self.ui_export
       model = Sketchup.active_model
-      instances = model.grep(Sketchup::Componentinstnce)
-      if instancces.length < 1
-        UI.messagebx('No ComponentInsances to Export.')
+      instances = model.entities.grep(Sketchup::ComponentInstance)
+      if instances.length < 1
+        UI.messagebox('No ComponentInstances to Export.')
         return
       end
       model_title = model.title
