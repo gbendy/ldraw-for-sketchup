@@ -51,10 +51,11 @@ module JF
       if @lost_parts.length > 0
         UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
       end
-      Sketchup.active_model.entities.add_instance(
-        cdef,
-        Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
-      )
+      #Sketchup.active_model.entities.add_instance(
+        #cdef,
+        #Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      #)
+      pass2(file)
     end
 
     # @param [String] pn - LDraw part number including .dat extention
@@ -95,6 +96,26 @@ module JF
       end
     end
 
+    def self.pass2(file)
+      p file
+        tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      IO.readlines(file).each do |line|
+        line.strip!
+        ary = line.split
+        cmd = ary.shift.to_i
+        next unless cmd == 1
+        color = ary.shift
+        t_ary = []
+        12.times { t_ary << ary.shift}
+        ttr = ary_to_trans(t_ary)
+        name = ary.pop
+        name = File.basename(name, '.*')
+        cdef = Sketchup.active_model.definitions[name]
+        ins = Sketchup.active_model.entities.add_instance(cdef, tr * ttr)
+        ins.material = get_or_add_material(color)
+      end
+    end
+
     def self.read_file(file, container, matrix, color='16')
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
@@ -124,7 +145,7 @@ module JF
             if path.nil?
               @lost_parts.insert(name)
             else
-              read_file(path, part_def.entities, matrix, this_color)
+              read_file(path, part_def.entities, matrix)
             end
           end
           part_m = ary_to_trans(ary)
@@ -134,7 +155,7 @@ module JF
           #if this_color == '16'
             #part.material = get_or_add_material(color)
           #else
-            part.material = get_or_add_material(this_color)
+            #part.material = get_or_add_material(this_color)
           #end
 
         when CMD_TRI
