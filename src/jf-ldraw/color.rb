@@ -1,7 +1,7 @@
 module JF
   module LDraw
     #LD_CONFIG = File.join(LDRAW_DIR, 'LDConfig.ldr')
-    LD_CONFIG = File.join('C:/Program Files (x86)/LDraw', 'LDConfig.ldr')
+    LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
     p LD_CONFIG
     #COLOR = {}
 

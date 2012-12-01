@@ -15,7 +15,7 @@ module JF
 
     def self.init
       # @ldrawdir = 'C:/LDraw'
-      @ldrawdir = 'C:/Program Files (x86)/LDraw'
+      @ldrawdir = 'C:/LDraw'
       @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
@@ -162,11 +162,11 @@ module JF
     def self.full_path_to(name)
       if File.exist?( name )
         return name
-      elsif (File.exist?( path = File.join(@ldrawdir, "parts", name)))
+      elsif (File.exist?( path = File.join(@ldrawdir, 'parts', name)))
         return path
-      elsif (File.exist?(path = File.join(@ldrawdir, "p", name)))
+      elsif (File.exist?(path = File.join(@ldrawdir, 'p', name)))
         return path
-      elsif (File.exist?(path = File.join(@ldrawdir, "parts/s", name)))
+      elsif (File.exist?(path = File.join(@ldrawdir, 'parts/s', name)))
         return path
       else
         return nil

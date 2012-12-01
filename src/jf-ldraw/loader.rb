@@ -2,7 +2,7 @@
 #
 module JF
   module LDraw
-    LDRAW_DIR = 'C:\Program Files (x86)\LDraw'
+    LDRAW_DIR = 'C:/LDraw'
     SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
     COLOR = {}
 
@@ -12,13 +12,15 @@ module JF
 
     menu = UI.menu('Plugins').add_submenu('LDraw')
 
+    menu.add_item('Import Part No') {
+      JF::LDraw.import_part_by_number
+    }
+
     menu.add_item('Import .ldr') {
       JF::LDraw.ui_get_file
     }
 
-    menu.add_item('Enter Part No') {
-      JF::LDraw.import_part_by_number
-    }
+    menu.add_separator
 
     menu.add_item("Export .ldr") {
       JF::LDraw.ui_export
