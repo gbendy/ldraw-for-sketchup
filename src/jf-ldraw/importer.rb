@@ -97,12 +97,17 @@ module JF
     end
 
     def self.pass2(file)
-      p file
-        tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      #p file
+      tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      layer = Sketchup.active_model.layers.add 'STEP 00'
       IO.readlines(file).each do |line|
         line.strip!
         ary = line.split
         cmd = ary.shift.to_i
+        if cmd == 0 and ary[0] == 'STEP'
+          layer = Sketchup.active_model.layers.add(Sketchup.active_model.layers[-1].name.next)
+        end
+
         next unless cmd == 1
         color = ary.shift
         t_ary = []
@@ -110,9 +115,13 @@ module JF
         ttr = ary_to_trans(t_ary)
         name = ary.pop
         name = File.basename(name, '.*')
+        #p name
         cdef = Sketchup.active_model.definitions[name]
+        #p cdef
+        next if cdef.nil?
         ins = Sketchup.active_model.entities.add_instance(cdef, tr * ttr)
         ins.material = get_or_add_material(color)
+        ins.layer = layer
       end
     end
 

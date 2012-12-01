@@ -1,9 +1,17 @@
 module JF
   module LDraw
     #LD_CONFIG = File.join(LDRAW_DIR, 'LDConfig.ldr')
-    LD_CONFIG = File.join('C:/Program Files (x86)/LDraw', 'LDConfig.ldr')
-    p LD_CONFIG
-    #COLOR = {}
+    #LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
+
+    def self.import_materials
+      parse_colors
+      Sketchup.active_model.start_operation('Import Materials', true)
+      COLOR.keys.each do |code|
+        get_or_add_material(code)
+      end
+      Sketchup.active_model.commit_operation
+    end
+
 
     def self.parse_colors
       IO.foreach(LD_CONFIG) do |line|
@@ -12,6 +20,7 @@ module JF
         value = /VALUE\s+\#([a-fA-F0-9]+)/.match(line)
         alpha = /ALPHA\s+(\d+)/.match(line)
           if code
+            code = code[1]
             #puts "code:#{code[1].inspect}"
             if value
               rgb = value[1].scan(/../).map{|e| e.to_i(16)}
@@ -20,12 +29,15 @@ module JF
               else
                 rgb << 255
               end
-              color = COLOR[code[1]] = Sketchup::Color.new(rgb)
+              color = COLOR[code] = Sketchup::Color.new(rgb)
             end
           end
       end
+      COLOR['16'] = nil
     end
+
     def self.get_or_add_material(code)
+      return nil if code == '16'
       if ( mat = Sketchup.active_model.materials[code] )
         return mat
       else
