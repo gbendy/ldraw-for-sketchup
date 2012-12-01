@@ -3,6 +3,13 @@ LDraw-for-SketchUp
 
 LDraw Tools for SketchUp
 
+30 Nov 2012
+
+ * Added colors ro imports.
+ * Import All Materials menu.
+ * Patterns & Stickers to Imports.
+ * Save Component context menu.
+
 29 Nov 2012
 
  * Look on disk for part before creating a new ComponentDefinition from file. 
