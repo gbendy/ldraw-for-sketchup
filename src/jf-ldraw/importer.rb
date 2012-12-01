@@ -11,6 +11,7 @@ module JF
     CMD_LINE    = 2
     CMD_TRI     = 3
     CMD_QUAD    = 4
+    SMOOTH = 8
 
     def self.init
       # @ldrawdir = 'C:/LDraw'
@@ -114,9 +115,6 @@ module JF
 
         when CMD_FILE
           this_color = ary.shift.strip
-          #puts "this_color:#{this_color.inspect}"
-          #this_color = color if this_color == '16'
-          #puts "this_color:#{COLOR[this_color].inspect}"
           name = (ary.pop).downcase
           #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
           part_def = get_or_add_definition(name)
@@ -130,13 +128,7 @@ module JF
           end
           part_m = ary_to_trans(ary)
           part = container.add_instance(part_def, part_m)
-          #mat = Sketchup.active_model.materials.add(this_color)
-          #mat.color = COLOR[this_color]
-          #if this_color == '16'
-            #part.material = get_or_add_material(color)
-          #else
-            part.material = get_or_add_material(this_color)
-          #end
+          part.material = get_or_add_material(this_color)
 
         when CMD_TRI
           this_color = ary.shift.strip
@@ -144,18 +136,14 @@ module JF
           pts = [ ary[0, 3], ary[3, 3], ary[6, 3] ]
           pts.map!{|e| Geom::Point3d.new(e)}
           pts.map!{|e| e.transform!(matrix)}
-          begin
-            face = container.add_face(pts)
-          rescue => e
-            puts "CMD_TRI: add_face error:#{e}\n#{pts.inspect}"
-          end
+          mesh = Geom::PolygonMesh.new
+          mesh.add_polygon(pts)
+          container.add_faces_from_mesh(mesh, SMOOTH)
 
         when CMD_QUAD
           this_color = ary.shift.strip
           ary.map!{|e| e.to_f }
           pts = [ ary[0..2], ary[3..5], ary[6..8], ary[9..11] ]
-          #pts.map!{|e| Geom::Point3d.new(e)}
-          #pts.map!{|e| e.transform!(matrix)}
           p1, p2, p3, p4 = pts
           if swap_needed(pts)
             if( !swap_needed([p1, p2, p4, p3]) )
@@ -164,13 +152,9 @@ module JF
               swap_points(pts, 1, 2)
             end
           end
-          begin
-            face = container.add_face(pts)
-          rescue => e
-            #puts "CMD_QUAD: add_face error:#{e}\n#{pts.inspect}"
-            container.add_face(pts[0], pts[1], pts[3])
-            container.add_face(pts[1], pts[2], pts[3])
-          end
+          mesh = Geom::PolygonMesh.new
+          mesh.add_polygon(pts)
+          container.add_faces_from_mesh(mesh, SMOOTH)
         end
       end
     end
