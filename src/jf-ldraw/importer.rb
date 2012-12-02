@@ -7,8 +7,6 @@ module JF
   module LDraw
 
     def self.init
-      @modeldir = 'C:/Users/Jim/Documents/Downloads'
-      @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
       parse_colors()
@@ -39,10 +37,11 @@ module JF
     
     # Allow user to browse for a file.
     # @return String<filepath> or nil
-    def self.ui_get_file
+    def self.ui_file_browse
       init()
-      file = UI.openpanel("Model", @modeldir, '*')
+      file = UI.openpanel("Model", @opts[:model_import_dir], '*.*' )
       return unless file
+      #pass1(file)
       cdef = import_definitions(file)
       if @lost_parts.length > 0
         puts "Missing parts:\n#{@lost_parts.to_a.sort.join(', ')}"
@@ -81,10 +80,9 @@ module JF
 
     def self.get_or_add_definition(name, desc = "")
       name = name.split('.')[0]
-      raise "#{__LINE__} - bad name." if name.empty? or name.nil?
       if((cdef = Sketchup.active_model.definitions[name]))
         return cdef
-      elsif File.exists?(f = File.join(@partsdir, name+'.skp'))
+      elsif File.exists?( f = File.join(@opts[:su_models_dir], name+'.skp') )
         cdef = Sketchup.active_model.definitions.load(f)
         return cdef
       else
@@ -165,9 +163,7 @@ module JF
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
           container.add_faces_from_mesh(
-            mesh,
-            @opts[:smoothing],
-            get_or_add_material(this_color)
+            mesh, SMOOTH_ONLY, get_or_add_material(this_color)
           )
 
         when CMD_QUAD
@@ -185,9 +181,7 @@ module JF
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
           container.add_faces_from_mesh(
-            mesh,
-            @opts[:smoothing],
-            get_or_add_material(this_color)
+            mesh, SMOOTH_ONLY, get_or_add_material(this_color)
           )
         end
       end

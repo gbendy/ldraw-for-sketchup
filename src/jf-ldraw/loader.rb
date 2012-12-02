@@ -12,7 +12,7 @@ module JF
 
     #menu.add_item('Import Definitions') { JF::LDraw.import_definitions }
     menu.add_item('Import Part No') { JF::LDraw.ui_import_part_by_number }
-    menu.add_item('Import Model (.ldr)') { JF::LDraw.ui_get_file }
+    menu.add_item('Import Model (.ldr)') { JF::LDraw.ui_file_browse }
     menu.add_separator
     menu.add_item("Export .ldr") { JF::LDraw.ui_export }
     menu.add_separator
@@ -23,7 +23,7 @@ module JF
     }
 
     menu.add_item('Open Part') {
-      file = UI.openpanel('Edit Part', SKETCHUP_PARTS, '*.skp')
+      file = UI.openpanel('Edit Part', @opts[:su_models_dir], '*.skp')
       return unless file
       Sketchup.open_file(file)
     }
