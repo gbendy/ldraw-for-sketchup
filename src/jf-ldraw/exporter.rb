@@ -36,5 +36,50 @@ module JF
       file_object.write("0\n")
     end
 
+    def self.export_layer_images
+      model = Sketchup.active_model
+      layers = model.layers
+      name = "000"
+      layers.each do |layer|
+        layers_off
+        layer.visible = true
+        model.active_view.zoom_extents
+        model.active_view.write_image("C:/Users/Jim/tmp/l#{name}.png")
+        name.next!
+      end
+    end
+
+    def self.export_scene_images
+      model = Sketchup.active_model
+      name = '000'
+      pages = model.pages
+      pages.each do |page|
+        pages.selected_page = page
+        model.active_view.write_image("C:/Users/Jim/tmp/p#{name}.png")
+        name.next!
+      end
+    end
+
+    def self.a
+      export_layer_images
+      export_scene_images
+      # GraphicsMagick commands
+      #`gm mogrify -verbose -resize 225 -border 2x2 l*.png`
+      #`gm mogrify -verbose -border 1x1 p*.png`
+      ##`gm mogrify -verbose -draw "text 0,0 Step" p*.png`
+
+      #Dir["l*.png"].each do |limg|
+      #  base_img = limg.delete('l')
+      #  cmd = "gm composite -verbose l#{base_img} p#{base_img} #{base_img}"
+      #  `#{cmd}`
+      #end
+      # gm montage -tile 2x -geometry +0+0 %.png  tmpimg.png
+    end
+
+
+    def self.layers_off
+      Sketchup.active_model.layers.map{|l| l.visible = false}
+    end
+
   end
 end
