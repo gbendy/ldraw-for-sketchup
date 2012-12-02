@@ -8,7 +8,7 @@ module JF
     load "#{File.dirname(__FILE__)}/exporter.rb"
     load "#{File.dirname(__FILE__)}/color.rb"
 
-    menu = UI.menu('Plugins').add_submenu('LDraw')
+    menu = UI.menu('Plugins').add_submenu('LD for SU')
 
     #menu.add_item('Import Definitions') { JF::LDraw.import_definitions }
     menu.add_item('Import Part No') { JF::LDraw.ui_import_part_by_number }
