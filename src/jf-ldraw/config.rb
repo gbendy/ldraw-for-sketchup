@@ -16,7 +16,6 @@ module JF
     @opts[:use_unofficial_parts] = true
     @opts[:unofficial_parts_dir] = 'C:/Users/Jim/Downloads/ldrawunf'
 
-    #LDRAW_DIR = 'C:/LDraw'
     SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
     COLOR = {}
     LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
@@ -29,7 +28,6 @@ module JF
     CMD_TRI     = 3
     CMD_QUAD    = 4
 
-    SMOOTH      = 0
     TR = Geom::Transformation.rotation(ORIGIN, X_AXIS, 90.degrees)
 
   end # LDraw

@@ -6,25 +6,16 @@ require 'sketchup'
 module JF
   module LDraw
 
-    # See config.rb
-    #CMD_COMMENT = 0
-    #CMD_FILE    = 1
-    #CMD_LINE    = 2
-    #CMD_TRI     = 3
-    #CMD_QUAD    = 4
-
-    #SMOOTH      = 0
-
     def self.init
-      # @ldrawdir = 'C:/LDraw'
-      #@ldrawdir = 'C:/LDraw'
+      @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @modeldir = 'C:/Users/Jim/Documents/Downloads'
       @partsdir = 'c:/Users/Jim/LDraw/SketchUp'
       @lost_parts = Set.new
       parse_colors()
+      @errors = []
     end
 
-    def self.import_part_by_number()
+    def self.ui_import_part_by_number()
       init()
       @last_pn = "3001" unless @last_pn
       ret = UI.inputbox(["Part No"], [@last_pn], "Import DAT")
@@ -33,9 +24,10 @@ module JF
         return
       end
       @last_pn = ret[0]
-      @part_no = ret[0]+".dat"
-      cdef = import ret[0]+".dat"
+      part_no = full_path_to(ret[0]+".dat")
+      cdef = import_definitions part_no
       return if cdef.nil?
+      pass2 part_no
       ins = Sketchup.active_model.entities.add_instance(
         cdef,
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
@@ -49,22 +41,23 @@ module JF
     # @return String<filepath> or nil
     def self.ui_get_file
       init()
-      #file = UI.openpanel("Model", @ldrawdir, "*.ldr")
-      file = UI.openpanel("Model", @modeldir, "*.ldr")
+      file = UI.openpanel("Model", @modeldir, '*')
       return unless file
-      cdef = import(file)
+      cdef = import_definitions(file)
       if @lost_parts.length > 0
-        UI.messagebox("Missing Parts #{@lost_parts.to_a.join(', ')}")
+        puts "Missing parts:\n#{@lost_parts.to_a.sort.join(', ')}"
       end
-      ins = Sketchup.active_model.entities.add_instance(
-        cdef,
-        Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
-      )
-      Sketchup.active_model.active_view.zoom(ins)
+      pass2(file)
+      Sketchup.active_model.active_view.zoom_extents
+      make_steps
+      if @errors.length > 1
+        UI.messagebox(@errors.join("\n"))
+      end
     end
 
     # @param [String] pn - LDraw part number including .dat extention
-    def self.import(pn)
+    # Imports parts into Definitions, not into mode
+    def self.import_definitions(pn)
       init()
       file = full_path_to(pn)
       if file.nil?
@@ -79,13 +72,12 @@ module JF
         Sketchup.active_model.start_operation "Import", true
         tr = Geom::Transformation.new
         entities = cdef.entities
-        read_file(file, entities, tr)
+        parse_file(file, entities, tr)
         #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
         Sketchup.active_model.commit_operation
       end
       return cdef
-    end # import
-
+    end # import_definitions
 
     def self.get_or_add_definition(name, desc = "")
       name = name.split('.')[0]
@@ -101,7 +93,33 @@ module JF
       end
     end
 
-    def self.read_file(file, container, matrix, color='16')
+    def self.pass2(file)
+      tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
+      layer = Sketchup.active_model.layers.add 'STEP 01'
+      IO.readlines(file).each do |line|
+        line.strip!
+        ary = line.split
+        cmd = ary.shift.to_i
+        if cmd == 0 and ary[0] == 'STEP'
+          layer = Sketchup.active_model.layers.add(Sketchup.active_model.layers[-1].name.next)
+        end
+
+        next unless cmd == 1
+        color = ary.shift
+        t_ary = []
+        12.times { t_ary << ary.shift}
+        ttr = ary_to_trans(t_ary)
+        name = ary.pop
+        name = File.basename(name, '.*')
+        cdef = Sketchup.active_model.definitions[name]
+        next if cdef.nil?
+        ins = Sketchup.active_model.entities.add_instance(cdef, tr * ttr)
+        ins.material = get_or_add_material(color)
+        ins.layer = layer
+      end
+    end
+
+    def self.parse_file(file, container, matrix, color='16')
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
         line.strip!
@@ -119,19 +137,19 @@ module JF
 
         when CMD_FILE
           this_color = ary.shift.strip
+          if this_color.nil?
+            p line
+            fail
+          end
           name = (ary.pop).downcase
           #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
           part_def = get_or_add_definition(name)
           if part_def.entities.length <= 1
             path = full_path_to(name)
             if path.nil?
-              path = unofficial(name)
-              if path.nil?
-                @lost_parts.insert(name)
-              end
-            end
-            if !path.nil?
-              read_file(path, part_def.entities, matrix, this_color)
+              @lost_parts.insert(name)
+            else
+              parse_file(path, part_def.entities, matrix)
             end
           end
           part_m = ary_to_trans(ary)
@@ -146,7 +164,11 @@ module JF
           pts.map!{|e| e.transform!(matrix)}
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
-          container.add_faces_from_mesh(mesh, SMOOTH, get_or_add_material(this_color))
+          container.add_faces_from_mesh(
+            mesh,
+            @opts[:smoothing],
+            get_or_add_material(this_color)
+          )
 
         when CMD_QUAD
           this_color = ary.shift.strip
@@ -162,7 +184,11 @@ module JF
           end
           mesh = Geom::PolygonMesh.new
           mesh.add_polygon(pts)
-          container.add_faces_from_mesh(mesh, SMOOTH, get_or_add_material(this_color))
+          container.add_faces_from_mesh(
+            mesh,
+            @opts[:smoothing],
+            get_or_add_material(this_color)
+          )
         end
       end
     end
@@ -223,6 +249,21 @@ module JF
 
     def self.swap_points(ary, i, j)
       ary[j], ary[i] = ary[i], ary[j]
+    end
+
+    def self.make_steps
+      model = Sketchup.active_model
+      layers = model.layers
+      pages = model.pages
+      layers.purge_unused
+      layers = layers.to_a
+      layers.shift #layer0
+      pages.add
+      layers.each { |layer| layer.visible =  false }
+      layers.each do |layer|
+        layer.visible = true
+        pages.add(layer.name, 32)
+      end
     end
 
   end # LDraw

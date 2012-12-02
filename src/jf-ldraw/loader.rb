@@ -2,9 +2,6 @@
 #
 module JF
   module LDraw
-    #LDRAW_DIR = 'C:/LDraw'
-    #SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
-    #COLOR = {}
 
     load "#{File.dirname(__FILE__)}/config.rb"
     load "#{File.dirname(__FILE__)}/importer.rb"
@@ -13,7 +10,8 @@ module JF
 
     menu = UI.menu('Plugins').add_submenu('LDraw')
 
-    menu.add_item('Import Part No') { JF::LDraw.import_part_by_number }
+    #menu.add_item('Import Definitions') { JF::LDraw.import_definitions }
+    menu.add_item('Import Part No') { JF::LDraw.ui_import_part_by_number }
     menu.add_item('Import Model (.ldr)') { JF::LDraw.ui_get_file }
     menu.add_separator
     menu.add_item("Export .ldr") { JF::LDraw.ui_export }
@@ -38,5 +36,5 @@ module JF
       end
     end
 
-  end
-end
+  end # LDraw
+end # JF

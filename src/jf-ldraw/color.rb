@@ -40,10 +40,11 @@ module JF
       return nil if code == '16'
       if ( mat = Sketchup.active_model.materials[code] )
         return mat
+      elsif COLOR[code].nil?
+        return nil
       else
         mat = Sketchup.active_model.materials.add(code)
         mat.color = COLOR[code]
-        #mat.alpha = 1.0 - COLOR[code].alpha / 255.0
         mat.alpha = COLOR[code].alpha / 255.0
         return mat
       end
