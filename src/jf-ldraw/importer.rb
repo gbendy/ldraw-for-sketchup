@@ -42,6 +42,7 @@ module JF
       file = UI.openpanel("Model", @opts[:model_import_dir], '*.*' )
       return unless file
       #pass1(file)
+      @base_dir = File.dirname(file)
       cdef = import_definitions(file)
       if @lost_parts.length > 0
         puts "Missing parts:\n#{@lost_parts.to_a.sort.join(', ')}"
@@ -121,8 +122,10 @@ module JF
       lines = IO.readlines(file)
       lines.each_with_index do |line, i|
         line.strip!
+        next if line.empty? or line == '0'
         ary = line.split
-        cmd = ary.shift
+        throwaay = ary.shift
+        cmd, rest = first_rest(line)
         cmd = cmd.to_i
 
         case cmd
@@ -134,13 +137,21 @@ module JF
           # Do nothing
 
         when CMD_FILE
-          this_color = ary.shift.strip
+          #this_color = ary.shift.strip
+          this_color, rest = first_rest(rest)
           if this_color.nil?
             p line
             fail
           end
+          m = []
+          12.times do
+            elem, rest = first_rest(rest)
+            m << elem.to_f
+          end
+          fail if m.length != 12
+
           name = (ary.pop).downcase
-          #raise "Bad array #{File.basename(file)}:#{i}" if ary.length != 12
+          name = rest.strip
           part_def = get_or_add_definition(name)
           if part_def.entities.length <= 1
             path = full_path_to(name)
@@ -150,7 +161,7 @@ module JF
               parse_file(path, part_def.entities, matrix)
             end
           end
-          part_m = ary_to_trans(ary)
+          part_m = ary_to_trans(m)
           part = container.add_instance(part_def, part_m)
           part.material = get_or_add_material(this_color)
 
@@ -187,9 +198,18 @@ module JF
       end
     end
 
+    def self.first_rest(line)
+      i = line.index(/\s/)
+      l = line.length
+      [line.slice(0, i), line.slice(i, l).strip]
+    end
+
     def self.full_path_to(name)
+      puts "looking for: #{name}"
       if File.exist?( name )
         return name
+      elsif (File.exist?(f = File.join(@base_dir, name)))
+        return f
       elsif (File.exist?( path = File.join(@opts[:ldraw_dir], 'parts', name)))
         return path
       elsif (File.exist?(path = File.join(@opts[:ldraw_dir], 'p', name)))
