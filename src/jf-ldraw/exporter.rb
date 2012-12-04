@@ -44,7 +44,8 @@ module JF
         layers_off
         layer.visible = true
         model.active_view.zoom_extents
-        model.active_view.write_image("C:/Users/Jim/tmp/l#{name}.png")
+        out = File.join(TEMP_PATH, "l#{name}.png")
+        model.active_view.write_image(out)
         name.next!
       end
     end
@@ -55,7 +56,8 @@ module JF
       pages = model.pages
       pages.each do |page|
         pages.selected_page = page
-        model.active_view.write_image("C:/Users/Jim/tmp/p#{name}.png")
+        out = File.join(TEMP_PATH, "p#{name}.png")
+        model.active_view.write_image(out)
         name.next!
       end
     end

@@ -13,6 +13,7 @@ module JF
     SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
     COLOR = {}
     LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
+    TEMP_PATH = File.expand_path( ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP'] ).freeze
 
 
     # LDraw Lne  Types
