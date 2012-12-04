@@ -11,6 +11,7 @@ module JF
       @lost_parts = Set.new
       parse_colors()
       @errors = []
+      @base_dir = ''
     end
 
     def self.ui_import_part_by_number()
@@ -57,11 +58,11 @@ module JF
 
     # @param [String] pn - LDraw part number including .dat extention
     # Imports parts into Definitions, not into mode
-    def self.import_definitions(pn)
+    def self.import_definitions(file)
       init()
-      file = full_path_to(pn)
+      file = full_path_to(file)
       if file.nil?
-        UI.messagebox("No part: #{pn}")
+        UI.messagebox("No part: #{file}")
         return
       end
       Sketchup.active_model.definitions.purge_unused
@@ -205,7 +206,7 @@ module JF
     end
 
     def self.full_path_to(name)
-      puts "looking for: #{name}"
+      #puts "looking for: #{name}"
       if File.exist?( name )
         return name
       elsif (File.exist?(f = File.join(@base_dir, name)))
