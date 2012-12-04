@@ -1,5 +1,8 @@
 module JF
   module LDraw
+    def self.round_at(n, d ) #d=0
+      (n * (10.0 ** d)).round.to_f / (10.0 ** d)
+    end
 
     def self.ui_export
       model = Sketchup.active_model
@@ -25,8 +28,10 @@ module JF
       model = Sketchup.active_model
       model.active_entities.grep(Sketchup::ComponentInstance).each do |ins|
         a = (TR * ins.transformation).to_a
+        a.map!{|e| round_at(e, 4)}
         file_object.write('1 ')
-        file_object.write(ins.material.name)
+        mat_name = ins.material ? ins.material.name : '16'
+        file_object.write(mat_name)
         file_object.write(" #{a[12]} #{a[13]} #{a[14]} ")
         file_object.write("#{a[0]} #{a[4]} #{a[8]} ")
         file_object.write("#{a[1]} #{a[5]} #{a[9]} ")
