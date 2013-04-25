@@ -27,9 +27,10 @@ module JF
       part_no = full_path_to(ret[0]+".dat")
       cdef = import_definitions part_no
       return if cdef.nil?
-      pass2 part_no
+      pass2(part_no,false)
       ins = Sketchup.active_model.entities.add_instance(
         cdef,
+        (MAKE_COMPONENT && PHYSICAL_SCALE ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new) *
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
       Sketchup.active_model.active_view.zoom(ins)
@@ -104,10 +105,15 @@ module JF
       end
     end
 
-    def self.pass2(file)
+    def self.pass2(file,make_component=true)
       tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       layer = Sketchup.active_model.layers.add 'STEP 01'
+      add_def = nil
       add_entities = Sketchup.active_model.entities
+      if (make_component && MAKE_COMPONENT)
+        add_def = Sketchup.active_model.definitions.add(File.basename(file))
+        add_entities = add_def.entities
+      end
       IO.readlines(file).each do |line|
         line.strip!
         ary = line.split
@@ -135,6 +141,9 @@ module JF
           ins.material = get_or_add_material(color)
           ins.layer = layer
         end
+      end
+      if (make_component && MAKE_COMPONENT)
+        Sketchup.active_model.entities.add_instance(add_def,PHYSICAL_SCALE ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new)
       end
     end
 

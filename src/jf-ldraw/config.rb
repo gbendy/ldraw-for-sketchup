@@ -21,6 +21,16 @@ module JF
     # invalid they are discarded.
     VALIDATE_TRANSFORM = true
     
+    # If true then the imported LDR is made into a component rather than
+    # imported into the root of the scene.
+    MAKE_COMPONENT = true
+    
+    # If true then scales the imported model to real world scale.
+    # Only effective if MAKE_COMPONENT is also true.
+    # Note this only affects the generated component, individual part
+    # definitions are still in LDR scale.
+    PHYSICAL_SCALE = true
+
     # LDraw Lne  Types
     CMD_COMMENT = 0
     CMD_FILE    = 1
