@@ -3,6 +3,14 @@ LDraw-for-SketchUp
 
 LDraw Tools for SketchUp
 
+25 Apr 2013
+
+ * Add VALIDATE_TRANSFORM config option to check part transforms are not degenerate.
+ * Add MAKE_COMPONENT config option to import LDR as a component.
+ * Add PHYSICAL_SCALE config option to scale the component to real world lego size.
+ * Add color import plugin system to allow users to modify colors as they are imported. See color.rb for details.
+
+
 30 Nov 2012
 
  * Added colors ro imports.
