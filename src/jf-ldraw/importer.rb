@@ -11,6 +11,7 @@ module JF
       @lost_parts = Set.new
       parse_colors()
       @errors = []
+      @invalid_parts = {}
       @base_dir = ''
     end
 
@@ -32,6 +33,7 @@ module JF
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
       Sketchup.active_model.active_view.zoom(ins)
+      process_errors
       return ret[0]
     end
 
@@ -51,8 +53,17 @@ module JF
       pass2(file)
       Sketchup.active_model.active_view.zoom_extents
       make_steps
-      if @errors.length > 1
-        UI.messagebox(@errors.join("\n"))
+      process_errors
+    end
+    
+    def self.process_errors()
+      @invalid_parts.each { |part,invalid|
+        msg = "Warning: the following parts in " + part + " have invalid matrix data and have been discarded\n  "
+        msg += invalid.join("\n  ")
+        @errors.push(msg)
+      }
+      if @errors.length > 0
+        UI.messagebox(@errors.join("\n"),MB_MULTILINE)
       end
     end
 
@@ -96,6 +107,7 @@ module JF
     def self.pass2(file)
       tr = Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       layer = Sketchup.active_model.layers.add 'STEP 01'
+      add_entities = Sketchup.active_model.entities
       IO.readlines(file).each do |line|
         line.strip!
         ary = line.split
@@ -113,9 +125,16 @@ module JF
         name = File.basename(name, '.*')
         cdef = Sketchup.active_model.definitions[name]
         next if cdef.nil?
-        ins = Sketchup.active_model.entities.add_instance(cdef, tr * ttr)
-        ins.material = get_or_add_material(color)
-        ins.layer = layer
+        if (!validate_transform(ttr))
+          if (@invalid_parts[file].nil?)
+            @invalid_parts[file] = []
+          end
+          @invalid_parts[file].push(name)
+        else
+          ins = add_entities.add_instance(cdef, tr * ttr)
+          ins.material = get_or_add_material(color)
+          ins.layer = layer
+        end
       end
     end
 
@@ -162,10 +181,17 @@ module JF
               parse_file(path, part_def.entities, matrix)
             end
           end
-          part_m = ary_to_trans(m)
-          part = container.add_instance(part_def, part_m)
-          part.material = get_or_add_material(this_color)
 
+          part_m = ary_to_trans(m)
+          if (!validate_transform(part_m))
+            if (@invalid_parts[file].nil?)
+              @invalid_parts[file] = []
+            end
+            @invalid_parts[file].push(name)
+          else
+            part = container.add_instance(part_def, part_m)
+            part.material = get_or_add_material(this_color)
+          end
         when CMD_TRI
           this_color = ary.shift.strip
           ary.map!{|e| e.to_f }
@@ -260,6 +286,16 @@ module JF
       return true if (dot = n2.dot n4) <= 0.0
       return true if (dot = n3.dot n4) <= 0.0
       return false
+    end
+    
+    def self.validate_transform(t)
+      return true if VALIDATE_TRANSFORM == false
+      a,b,c,w1,d,e,f,w2,g,h,i,w3,x,y,z,w4 = t.to_a
+      
+      det = a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h
+      return false if (det.abs < 10e-5)
+      return false if (w1.abs > 10e-05 || w2.abs > 10e-5 || w3.abs > 10e-5 || (w4-1).abs > 10e-5)
+      return true
     end
 
     def self.swap_points(ary, i, j)

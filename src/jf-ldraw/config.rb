@@ -15,7 +15,12 @@ module JF
     LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
     TEMP_PATH = File.expand_path( ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP'] ).freeze
 
-
+    # import settings
+    
+    # If true then incoming parts have their transform checked for validity. If 
+    # invalid they are discarded.
+    VALIDATE_TRANSFORM = true
+    
     # LDraw Lne  Types
     CMD_COMMENT = 0
     CMD_FILE    = 1
