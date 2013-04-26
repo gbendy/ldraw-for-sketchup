@@ -13,29 +13,35 @@ module JF
     class ColorProcessor
         # Called when a color is imported into the scene. Allows a user to modify
         # the SketchUp material created.
-        # \p material the SketchUp material that represents the color. This already has the value and any alpha applied from the LDconfig file.
+        # \p material the SketchUp material that represents the color. This already has the value and any alpha applied
         # \p color Hash containing information about the color being imported from the LDConfig file:
         #    code - the color code
         #    rgb - Sketchup::Color containing the RGBA color of this color
         #    name - the color name
-        #    metadata - Hash containing additional metadata about the color. Has one or more of the following:
+        #    ALPHA - float (0-255), the alpha value of the color
+        #    LUMINANCE - float, the luminance value of the color
+        #    finish - Hash containing finish metadata about the color. Has one of the following:
         #        SOLID - true, is a standard solid color
-        #        ALPHA - float (0-255), the alpha value of the color
-        #        LUMINANCE - float, the luminance value of the color
         #        CHROME - true, has a chrome finish
         #        METAL - true, has a metallic finish
+        #        MATTE_METALLIC - true, has a brushed metallic finish
         #        PEARLESCENT - true, has a pearlescent finish
         #        RUBBER - true, has a rubber finish
-        #        MATERIAL GLITTER - hash, has a glitter finish, value contains the specific glitter values
-        #            value - Sketchup::Color glitter color
-        #            fraction - float fraction
-        #            vfraction - float vfraction
-        #            size - float size
-        #        MATERIAL SPARKLE - hash, has a speckle finish, value contains the specific speckle values
-        #            value - Sketchup::Color speckle color
-        #            fraction - float fraction
-        #            minsize - float min size
-        #            maxsize - float max size
+        #        MATERIAL - hash, a material finish, value is a hash containing the specific material parameters.
+        #                   name is the only compulsory element, all others are material dependent. Those 
+        #                   listed below are used by the official GLITTER and SPECKLE materials. Parameter VALUE
+        #                   will automatically be converted to an RGBA SketchUp Color, all others will be strings.
+        #            name - string, the name of the material, usually GLITTER or SPECKLE
+        #            VALUE - Sketchup::Color the finish color
+        #            ALPHA - string (0-255), the alpha value of the finish
+        #            LUMINANCE - string, the luminance value of the finsh
+        #            FRACTION - string fraction
+        #            VFRACTION - string vfraction
+        #            SIZE - string size
+        #            MINSIZE - string min size
+        #            MAXSIZE - string max size
+        #
+        #  See http://www.ldraw.org/article/299 for a description of the LDraw color specifications
         def process(material,color)
         end
     end
@@ -77,66 +83,45 @@ module JF
             #puts "code:#{code[1].inspect}"
             if value
               color = {}
-              rgb = value[1].scan(/../).map{|e| e.to_i(16)}
-              if alpha
-                rgb << alpha[1].to_f / 255.0
-              else
-                rgb << 255
-              end
               color["code"] = code
-              color["rgb"] = Sketchup::Color.new(rgb)
+              color["rgb"] = value_to_color(value[1],!alpha ? 255 : alpha[1])
               name = /!COLOUR\s+([[:graph:]]+)/.match(line)
               if (name)
                 color["name"] = name[1]
               end
-              metadata = {}
-              ["CHROME","METAL","PEARLESCENT","RUBBER","MATERIAL GLITTER","MATERIAL SPECKLE"].each { |key|
+              finish = {}
+              ["CHROME","METAL","MATTE_METALLIC","PEARLESCENT","RUBBER","MATERIAL"].each { |key|
                 match = /#{key}/.match(line)
                 if (match)
                   data = true
-                  if (key == "MATERIAL GLITTER")
-                    post = match.post_match.strip
+                  if (key == "MATERIAL")
+                    params = match.post_match.strip.split()
                     data = {}
-                    value = /VALUE\s+\#([a-fA-F0-9]+)/.match(post)
-                    fraction = /FRACTION\s+([0-9.]+)/.match(post)
-                    vfraction = /VFRACTION\s+([0-9.]+)/.match(post)
-                    size = /SIZE\s+([0-9.]+)/.match(post)
-                    rgb = value[1].scan(/../).map{|e| e.to_i(16)}
-                    rgb << 255
-                    data["value"] = Sketchup::Color.new(rgb)
-                    data["fraction"] = fraction[1].to_f
-                    data["vfraction"] = vfraction[1].to_f
-                    data["size"] = size[1].to_f
-                  elsif (key == "MATERIAL SPECKLE")
-                    post = match.post_match.strip
-                    data = {}
-                    value = /VALUE\s+\#([a-fA-F0-9]+)/.match(post)
-                    fraction = /FRACTION\s+([0-9.]+)/.match(post)
-                    minsize = /MINSIZE\s+([0-9.]+)/.match(post)
-                    maxsize = /MAXSIZE\s+([0-9.]+)/.match(post)
-                    rgb = value[1].scan(/../).map{|e| e.to_i(16)}
-                    rgb << 255
-                    data["value"] = Sketchup::Color.new(rgb)
-                    data["fraction"] = fraction[1].to_f
-                    data["minsize"] = minsize[1].to_f
-                    data["maxsize"] = maxsize[1].to_f
+                    data["name"] = params.shift.strip
+                    while (params.length != 0)
+                      data[params.shift.strip] = params.shift.strip
+                    end
+                    if (!data["VALUE"].nil?)
+                      # convert value to a colour
+                      data["VALUE"] = value_to_color(data["VALUE"].delete("#"),data["ALPHA"])
+                    end
                   end
-                  metadata[key] = data
+                  finish[key] = data
                 end
               }
               # if none of the above then we're a basic solid brick
-              if (metadata.size == 0)
-                metadata["SOLID"] = true
+              if (finish.size == 0)
+                finish["SOLID"] = true
               end
               if (alpha) 
-                metadata["ALPHA"] = alpha[1].to_f
+                color["ALPHA"] = alpha[1].to_f
               end
               luminance = /LUMINANCE\s+(\d+)/.match(line)
               if (luminance)
-                metadata["LUMINANCE"] = luminance[1].to_f
+                color["LUMINANCE"] = luminance[1].to_f
               end
               
-              color["metadata"] = metadata
+              color["finish"] = finish
               COLOR[code] = color
             end
           end
@@ -144,6 +129,12 @@ module JF
       COLOR['16'] = nil
     end
 
+    def self.value_to_color(value,alpha=255)
+      rgb = value.scan(/../).map{|e| e.to_i(16)}
+      rgb << (alpha.nil? ? 255 : alpha.to_i)
+      return Sketchup::Color.new(rgb)
+    end
+    
     def self.get_or_add_material(code)
       return nil if code == '16'
       if ( mat = Sketchup.active_model.materials[code] )
