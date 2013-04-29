@@ -3,6 +3,12 @@ LDraw-for-SketchUp
 
 LDraw Tools for SketchUp
 
+29 Apr 2013
+
+ * Moved importer options to JF::LDraw::@opts.
+ * Added a JF::LDraw::Color class to store LDConfig data rather than using a hash.
+ * Pass JF::LDraw::@opts into color processor plugins.
+
 26 Apr 2013
 
  * Generalize material support in Colors, add support for MATTE_METALLIC finish.
