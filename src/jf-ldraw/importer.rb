@@ -30,7 +30,7 @@ module JF
       pass2(part_no,false)
       ins = Sketchup.active_model.entities.add_instance(
         cdef,
-        (MAKE_COMPONENT && PHYSICAL_SCALE ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new) *
+        ((@opts[:make_component] && @opts[:physical_scale]) ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new) *
         Geom::Transformation.rotation(ORIGIN, X_AXIS, -90.degrees)
       )
       Sketchup.active_model.active_view.zoom(ins)
@@ -110,7 +110,7 @@ module JF
       layer = Sketchup.active_model.layers.add 'STEP 01'
       add_def = nil
       add_entities = Sketchup.active_model.entities
-      if (make_component && MAKE_COMPONENT)
+      if (make_component && @opts[:make_component])
         add_def = Sketchup.active_model.definitions.add(File.basename(file))
         add_entities = add_def.entities
       end
@@ -142,8 +142,8 @@ module JF
           ins.layer = layer
         end
       end
-      if (make_component && MAKE_COMPONENT)
-        Sketchup.active_model.entities.add_instance(add_def,PHYSICAL_SCALE ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new)
+      if (make_component && @opts[:make_component])
+        Sketchup.active_model.entities.add_instance(add_def,@opts[:physical_scale] ? Geom::Transformation.new(1/63.5) : Geom::Transformation.new)
       end
     end
 
@@ -298,7 +298,7 @@ module JF
     end
     
     def self.validate_transform(t)
-      return true if VALIDATE_TRANSFORM == false
+      return true if @opts[:validate_transform] == false
       a,b,c,w1,d,e,f,w2,g,h,i,w3,x,y,z,w4 = t.to_a
       
       det = a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h

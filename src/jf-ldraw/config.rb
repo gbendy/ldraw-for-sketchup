@@ -9,27 +9,22 @@ module JF
     @opts[:su_models_dir]           = ENV['HOMEPATH'] + '/LDraw/SketchUp'
     @opts[:use_unofficial_parts]    = true
     #@opts[:autosave_imported_parts] = false
-
-    SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
-    COLOR = {}
-    LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
-    TEMP_PATH = File.expand_path( ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP'] ).freeze
-
-    # import settings
-    
     # If true then incoming parts have their transform checked for validity. If 
     # invalid they are discarded.
-    VALIDATE_TRANSFORM = true
-    
+    @opts[:validate_transform]      = true
     # If true then the imported LDR is made into a component rather than
     # imported into the root of the scene.
-    MAKE_COMPONENT = true
-    
+    @opts[:make_component]          = false
     # If true then scales the imported model to real world scale.
     # Only effective if MAKE_COMPONENT is also true.
     # Note this only affects the generated component, individual part
     # definitions are still in LDR scale.
-    PHYSICAL_SCALE = true
+    @opts[:physical_scale]          = true
+    
+    SKETCHUP_PARTS = ENV['HOMEPATH'] + '/LDraw/SketchUp'
+    COLOR = {}
+    LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
+    TEMP_PATH = File.expand_path( ENV['TMPDIR'] || ENV['TMP'] || ENV['TEMP'] ).freeze
 
     # LDraw Lne  Types
     CMD_COMMENT = 0
