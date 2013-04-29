@@ -3,8 +3,6 @@ module JF
     #LD_CONFIG = File.join(LDRAW_DIR, 'LDConfig.ldr')
     #LD_CONFIG = File.join('C:/LDraw', 'LDConfig.ldr')
 
-    COLOR_PROCESSORS = []
-    
     # Represents an LDraw color. Contains the following attributes:
     #    code - the color code
     #    name - the color name
@@ -105,37 +103,6 @@ module JF
       end      
     end
     
-    # Base class for users to implement their own color processor.
-    # Implementations registered with JF::LDraw.add_color_processor
-    # will be called after each color has been added to the model and
-    # allows for custom material setup. This can be used to setup high
-    # quality materials for 3rd party renderers.
-    class ColorProcessor
-        # Called when a color is imported into the scene. Allows a user to modify
-        # the SketchUp material created.
-        # \param material the SketchUp material that represents the color. This already has the value and any alpha applied
-        # \param color a Color class representing the color being imported from the LDConfig file
-        # \param opts the LDraw configuration options
-        def process(material,color,opts)
-        end
-    end
-    
-    # Adds a color processor. Whenever a material is imported the processor will be called
-    # \p processor the processor to add.
-    def self.add_color_processor(processor)
-      if (!processor.nil?)
-        COLOR_PROCESSORS.push(processor)
-      end
-    end
-
-    # Removes a color processor
-    # \p processor the processor to remove.
-    def self.remove_color_processor(processor)
-      if (!processor.nil?)
-        COLOR_PROCESSORS.delete(processor)
-      end
-    end
-    
     def self.import_materials
       parse_colors
       Sketchup.active_model.start_operation('Import Materials', true)
@@ -164,7 +131,7 @@ module JF
         mat = Sketchup.active_model.materials.add(code)
         mat.color = COLOR[code].rgb
         mat.alpha = COLOR[code].alpha / 255.0
-        COLOR_PROCESSORS.each { |p| p.process(mat,COLOR[code],@opts) }
+        COLOR_PLUGINS.each { |p| p.import(mat,COLOR[code],@opts) }
         
         return mat
       end

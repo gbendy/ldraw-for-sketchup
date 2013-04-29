@@ -7,6 +7,7 @@ module JF
     load "#{File.dirname(__FILE__)}/importer.rb"
     load "#{File.dirname(__FILE__)}/exporter.rb"
     load "#{File.dirname(__FILE__)}/color.rb"
+    load "#{File.dirname(__FILE__)}/plugin.rb"    
 
     menu = UI.menu('Plugins').add_submenu('LD for SU')
 
