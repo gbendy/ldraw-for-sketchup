@@ -8,6 +8,7 @@ LDraw Tools for SketchUp
  * Moved importer options to JF::LDraw::@opts.
  * Added a JF::LDraw::Color class to store LDConfig data rather than using a hash.
  * Pass JF::LDraw::@opts into color processor plugins.
+ * Refactored color plugins to a dedicated plugin file and changed signature and name of base color plugin class.
 
 26 Apr 2013
 
