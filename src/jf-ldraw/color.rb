@@ -113,9 +113,10 @@ module JF
     class ColorProcessor
         # Called when a color is imported into the scene. Allows a user to modify
         # the SketchUp material created.
-        # \p material the SketchUp material that represents the color. This already has the value and any alpha applied
-        # \p color a Color class representing the color being imported from the LDConfig file
-        def process(material,color)
+        # \param material the SketchUp material that represents the color. This already has the value and any alpha applied
+        # \param color a Color class representing the color being imported from the LDConfig file
+        # \param opts the LDraw configuration options
+        def process(material,color,opts)
         end
     end
     
@@ -163,7 +164,7 @@ module JF
         mat = Sketchup.active_model.materials.add(code)
         mat.color = COLOR[code].rgb
         mat.alpha = COLOR[code].alpha / 255.0
-        COLOR_PROCESSORS.each { |p| p.process(mat,COLOR[code]) }
+        COLOR_PROCESSORS.each { |p| p.process(mat,COLOR[code],@opts) }
         
         return mat
       end
