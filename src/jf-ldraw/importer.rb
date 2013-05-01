@@ -25,8 +25,9 @@ module JF
       end
       @last_pn = ret[0]
       part_no = full_path_to(ret[0]+".dat")
-      cdef = import_definitions part_no
+      cdef = import_definitions(part_no,true)
       return if cdef.nil?
+      run_post_import(ret[0],cdef,"dat")
       pass2(part_no,false)
       ins = Sketchup.active_model.entities.add_instance(
         cdef,
@@ -47,7 +48,7 @@ module JF
       return unless file
       #pass1(file)
       @base_dir = File.dirname(file)
-      cdef = import_definitions(file)
+      cdef = import_definitions(file,false)
       if @lost_parts.length > 0
         puts "Missing parts:\n#{@lost_parts.to_a.sort.join(', ')}"
       end
@@ -70,7 +71,7 @@ module JF
 
     # @param [String] pn - LDraw part number including .dat extention
     # Imports parts into Definitions, not into mode
-    def self.import_definitions(file)
+    def self.import_definitions(file,part_import)
       init()
       file = full_path_to(file)
       if file.nil?
@@ -79,30 +80,54 @@ module JF
       end
       Sketchup.active_model.definitions.purge_unused
       name = File.basename(file, '.dat')
-      cdef = get_or_add_definition(name)
+      cdef,populate = get_or_add_definition(name,!part_import)
 
-      if cdef.entities.length < 1
+      if populate
         Sketchup.active_model.start_operation "Import", true
         tr = Geom::Transformation.new
         entities = cdef.entities
         parse_file(file, entities, tr)
+        
         #ins = Sketchup.active_model.entities.add_instance(cdef, tr)
         Sketchup.active_model.commit_operation
       end
       return cdef
     end # import_definitions
 
-    def self.get_or_add_definition(name, desc = "")
+    def self.get_or_add_definition(name, suppress_plugins=false, desc = "")
       name = name.split('.')[0]
+      populate=false
       if((cdef = Sketchup.active_model.definitions[name]))
-        return cdef
-      elsif File.exists?( f = File.join(@opts[:su_models_dir], name+'.skp') )
-        cdef = Sketchup.active_model.definitions.load(f)
-        return cdef
-      else
-        cdef = Sketchup.active_model.definitions.add(name) 
-        return cdef
+        return [cdef,populate]
       end
+      source='skp'
+      if (!suppress_plugins)
+        PART_PLUGINS.each { |p|
+          cdef = p.import(name,@opts)
+          if (!cdef.nil?)
+            source = p
+            break
+          end
+        }
+      end
+      if (cdef.nil?)
+        if File.exists?( f = File.join(@opts[:su_models_dir], name+'.skp') )
+          cdef = Sketchup.active_model.definitions.load(f)
+          run_post_import(name,cdef,source)        
+        else
+          cdef = Sketchup.active_model.definitions.add(name)
+          populate=true
+        end
+      else
+        run_post_import(name,cdef,source)
+      end
+      return [cdef,populate]
+    end
+    
+    def self.run_post_import(name,cdef,source)
+      PART_PLUGINS.each { |p|
+        p.post_import(name,cdef,{"source"=>source,"type"=>part_type(name)},@opts)
+      }        
     end
 
     def self.pass2(file,make_component=true)
@@ -181,13 +206,14 @@ module JF
 
           name = (ary.pop).downcase
           name = rest.strip
-          part_def = get_or_add_definition(name)
-          if part_def.entities.length <= 1
+          part_def,populate = get_or_add_definition(name)
+          if populate
             path = full_path_to(name)
             if path.nil?
               @lost_parts.insert(name)
             else
               parse_file(path, part_def.entities, matrix)
+              run_post_import(part_def.name,part_def,'dat')
             end
           end
 
@@ -266,6 +292,19 @@ module JF
         return path
       elsif (File.exist?(path = File.join(@opts[:unofficial_parts_dir], 'parts/s', name)))
         return path
+      else
+        return nil
+      end
+    end
+    
+    def self.part_type(name,option_key="")
+      check_name = name.split("\\").last
+      if (File.exist?( path = File.join(@opts[:ldraw_dir], 'parts', check_name+".dat")))
+        return "part"
+      elsif (File.exist?(path = File.join(@opts[:ldraw_dir], 'p', check_name+".dat")))
+        return "primitive"
+      elsif (File.exist?(path = File.join(@opts[:ldraw_dir], 'parts/s', check_name+".dat")))
+        return "subpart"
       else
         return nil
       end
