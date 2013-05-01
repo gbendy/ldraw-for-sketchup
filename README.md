@@ -3,6 +3,10 @@ LDraw-for-SketchUp
 
 LDraw Tools for SketchUp
 
+1 May 2013
+
+  * Added part plugin system to allow users to supply custom part definitions.
+
 29 Apr 2013
 
  * Moved importer options to JF::LDraw::@opts.
